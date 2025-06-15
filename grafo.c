@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "grafo.h"
 #include "lista.h"
+#include "pilha.h"
 
 // -------------------------------------------------------------
 // IMPLEMENTAÇÃO PARA LISTA DE ADJACÊNCIA
@@ -74,6 +76,99 @@ void BFSLista(GrafoLista *g, int origem, int *visitado) {
     }
 }
 
+void forcaBrutaSCC(GrafoLista *g, GrafoLista *gt, int imprimir) {
+    int *visitado1 = (int *)calloc(g->num_vertices, sizeof(int));
+    int *visitado2 = (int *)calloc(g->num_vertices, sizeof(int));
+    int *scc = (int *)calloc(g->num_vertices, sizeof(int));
+    int componente = 1;
+
+    for (int i = 0; i < g->num_vertices; i++) {
+        if (!scc[i]) {
+            for (int j = 0; j < g->num_vertices; j++) {
+                visitado1[j] = visitado2[j] = 0;
+            }
+
+            DFSLista(g, i, visitado1);
+            DFSLista(gt, i, visitado2);
+
+            for (int j = 0; j < g->num_vertices; j++) {
+                if (visitado1[j] && visitado2[j] && !scc[j]) {
+                    scc[j] = componente;
+                }
+            }
+            componente++;
+        }
+    }
+
+    if (imprimir) {
+        printf("\n--- SCCs (Força Bruta - Lista) ---\n");
+        for (int c = 1; c < componente; c++) {
+            printf("Componente %d: ", c);
+            for (int i = 0; i < g->num_vertices; i++) {
+                if (scc[i] == c)
+                    printf("%d ", i);
+            }
+            printf("\n");
+        }
+    }
+
+    free(visitado1);
+    free(visitado2);
+    free(scc);
+}
+
+/* -------------------------------------------------------------
+   TARJAN – LISTA DE ADJACÊNCIA
+   ------------------------------------------------------------- */
+static void tarjanDFSLista(GrafoLista *g, int u,
+                           int *idx, int *low, int *onStack,
+                           int *curIndex, Pilha *S, int imprimir, int *comp)
+{
+    idx[u]  = low[u] = (*curIndex)++;
+    push(S, u);
+    onStack[u] = 1;
+
+    for (NoAdj *p = g->vertices[u].cabeca; p; p = p->prox) {
+        int v = p->id_vizinho;
+        if (idx[v] == -1) {
+            tarjanDFSLista(g, v, idx, low, onStack, curIndex, S, imprimir, comp);
+            if (low[u] > low[v]) low[u] = low[v];
+        } else if (onStack[v] && low[u] > idx[v]) {
+            low[u] = idx[v];
+        }
+    }
+    if (low[u] == idx[u]) {                     /* raiz de SCC */
+        if (imprimir) printf("SCC %d: ", ++(*comp));
+        int w;
+        do {
+            w = pop(S);
+            onStack[w] = 0;
+            if (imprimir) printf("%d ", w);
+        } while (w != u);
+        if (imprimir) putchar('\n');
+    }
+}
+
+void tarjanSCC(GrafoLista *g, int imprimir)
+{
+    int n = g->num_vertices;
+    int *idx     = (int *)malloc(n * sizeof(int));
+    int *low     = (int *)malloc(n * sizeof(int));
+    int *onStack = (int *)calloc(n, sizeof(int));
+    for (int i = 0; i < n; ++i) idx[i] = -1;
+
+    Pilha S; inicializarPilha(&S);
+    int cur = 0, comp = 0;
+
+    for (int u = 0; u < n; ++u)
+        if (idx[u] == -1)
+            tarjanDFSLista(g, u, idx, low, onStack, &cur, &S, imprimir, &comp);
+
+    free(idx); free(low); free(onStack);
+    liberarPilha(&S);
+}
+
+
 // -------------------------------------------------------------
 // IMPLEMENTAÇÃO PARA MATRIZ DE ADJACÊNCIA
 // -------------------------------------------------------------
@@ -131,4 +226,93 @@ void BFSMatriz(GrafoMatriz *g, int origem, int *visitado) {
         }
     }
 }
+
+void forcaBrutaSCC_Matriz(GrafoMatriz *g, GrafoMatriz *gt, int imprimir) {
+    int *visitado1 = (int *)calloc(g->num_vertices, sizeof(int));
+    int *visitado2 = (int *)calloc(g->num_vertices, sizeof(int));
+    int *scc = (int *)calloc(g->num_vertices, sizeof(int));
+    int componente = 1;
+
+    for (int i = 0; i < g->num_vertices; i++) {
+        if (!scc[i]) {
+            for (int j = 0; j < g->num_vertices; j++) {
+                visitado1[j] = visitado2[j] = 0;
+            }
+
+            DFSMatriz(g, i, visitado1);
+            DFSMatriz(gt, i, visitado2);
+
+            for (int j = 0; j < g->num_vertices; j++) {
+                if (visitado1[j] && visitado2[j] && !scc[j]) {
+                    scc[j] = componente;
+                }
+            }
+            componente++;
+        }
+    }
+
+    if (imprimir) {
+        printf("\n--- SCCs (Força Bruta - Matriz) ---\n");
+        for (int c = 1; c < componente; c++) {
+            printf("Componente %d: ", c);
+            for (int i = 0; i < g->num_vertices; i++) {
+                if (scc[i] == c)
+                    printf("%d ", i);
+            }
+            printf("\n");
+        }
+    }
+
+    free(visitado1);
+    free(visitado2);
+    free(scc);
+}
+
+static void tarjanDFSMatriz(GrafoMatriz *g, int u,
+                            int *idx, int *low, int *onStack,
+                            int *curIndex, Pilha *S, int imprimir, int *comp)
+{
+    idx[u]  = low[u] = (*curIndex)++;
+    push(S, u);
+    onStack[u] = 1;
+
+    for (int v = 0; v < g->num_vertices; ++v) if (g->matriz[u][v]) {
+        if (idx[v] == -1) {
+            tarjanDFSMatriz(g, v, idx, low, onStack, curIndex, S, imprimir, comp);
+            if (low[u] > low[v]) low[u] = low[v];
+        } else if (onStack[v] && low[u] > idx[v]) {
+            low[u] = idx[v];
+        }
+    }
+    if (low[u] == idx[u]) {
+        if (imprimir) printf("SCC %d: ", ++(*comp));
+        int w;
+        do {
+            w = pop(S);
+            onStack[w] = 0;
+            if (imprimir) printf("%d ", w);
+        } while (w != u);
+        if (imprimir) putchar('\n');
+    }
+}
+
+void tarjanSCC_Matriz(GrafoMatriz *g, int imprimir)
+{
+    int n = g->num_vertices;
+    int *idx     = (int *)malloc(n * sizeof(int));
+    int *low     = (int *)malloc(n * sizeof(int));
+    int *onStack = (int *)calloc(n, sizeof(int));
+    for (int i = 0; i < n; ++i) idx[i] = -1;
+
+    Pilha S; inicializarPilha(&S);
+    int cur = 0, comp = 0;
+
+    for (int u = 0; u < n; ++u)
+        if (idx[u] == -1)
+            tarjanDFSMatriz(g, u, idx, low, onStack, &cur, &S, imprimir, &comp);
+
+    free(idx); free(low); free(onStack);
+    liberarPilha(&S);
+}
+
 

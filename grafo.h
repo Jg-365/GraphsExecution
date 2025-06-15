@@ -25,6 +25,10 @@ void liberarGrafoLista(GrafoLista *g);
 // DFS e BFS para Lista de Adjacência
 void DFSLista(GrafoLista *g, int origem, int *visitado);
 void BFSLista(GrafoLista *g, int origem, int *visitado);
+void forcaBrutaSCC(GrafoLista *g, GrafoLista *gt, int imprimir);
+
+/* Algoritmo de Tarjan para SCC */
+void tarjanSCC(GrafoLista *g, int imprimir);
 
 
 // ---------- MATRIZ DE ADJACÊNCIA ----------
@@ -41,6 +45,10 @@ void liberarGrafoMatriz(GrafoMatriz *g);
 // DFS e BFS para Matriz de Adjacência
 void DFSMatriz(GrafoMatriz *g, int origem, int *visitado);
 void BFSMatriz(GrafoMatriz *g, int origem, int *visitado);
+void forcaBrutaSCC_Matriz(GrafoMatriz *g, GrafoMatriz *gt, int imprimir);
+
+/* Algoritmo de Tarjan para SCC */
+void tarjanSCC_Matriz(GrafoMatriz *g, int imprimir);
 
 #endif
 

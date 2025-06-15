@@ -1,0 +1,43 @@
+# Project: trabalho_grafos
+# Makefile created by Dev-C++ 5.11
+
+CPP      = g++.exe
+CC       = gcc.exe
+WINDRES  = windres.exe
+OBJ      = main.o lista.o pilha.o grafo.o user.o rede.o
+LINKOBJ  = main.o lista.o pilha.o grafo.o user.o rede.o
+LIBS     = -L"C:/MinGW/lib" -L"C:/MinGW/mingw32/lib" -std=c89
+INCS     = -I"C:/MinGW/include" -I"C:/MinGW/lib/gcc/mingw32/6.3.0/include"
+CXXINCS  = -I"C:/MinGW/include" -I"C:/MinGW/lib/gcc/mingw32/6.3.0/include" -I"C:/MinGW/lib/gcc/mingw32/6.3.0/include/c++"
+BIN      = trabalho_grafos.exe
+CXXFLAGS = $(CXXINCS) 
+CFLAGS   = $(INCS) 
+RM       = rm.exe -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before $(BIN) all-after
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CC) $(LINKOBJ) -o $(BIN) $(LIBS)
+
+main.o: main.c
+	$(CC) -c main.c -o main.o $(CFLAGS)
+
+lista.o: lista.c
+	$(CC) -c lista.c -o lista.o $(CFLAGS)
+
+pilha.o: pilha.c
+	$(CC) -c pilha.c -o pilha.o $(CFLAGS)
+
+grafo.o: grafo.c
+	$(CC) -c grafo.c -o grafo.o $(CFLAGS)
+
+user.o: user.c
+	$(CC) -c user.c -o user.o $(CFLAGS)
+
+rede.o: rede.c
+	$(CC) -c rede.c -o rede.o $(CFLAGS)
